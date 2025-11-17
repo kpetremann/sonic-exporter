@@ -11,6 +11,7 @@ import (
 	"github.com/prometheus/common/promslog/flag"
 	"github.com/prometheus/exporter-toolkit/web"
 	webflag "github.com/prometheus/exporter-toolkit/web/kingpinflag"
+	nodecollector "github.com/prometheus/node_exporter/collector"
 	"github.com/vinted/sonic-exporter/internal/collector"
 )
 
@@ -28,6 +29,7 @@ func main() {
 
 	logger := promslog.New(promslogConfig)
 
+	// SONiC collectors
 	interfaceCollector := collector.NewInterfaceCollector(logger)
 	hwCollector := collector.NewHwCollector(logger)
 	crmCollector := collector.NewCrmCollector(logger)
@@ -36,6 +38,22 @@ func main() {
 	prometheus.MustRegister(hwCollector)
 	prometheus.MustRegister(crmCollector)
 	prometheus.MustRegister(queueCollector)
+
+	// Node exporter collectors
+	nodeCollector, err := nodecollector.NewNodeCollector(logger,
+		"loadavg",
+		"cpu",
+		"diskstats",
+		"filesystem",
+		"meminfo",
+		"time",
+		"stat",
+	)
+	if err != nil {
+		logger.Error("Failed to create node collector", "error", err)
+		os.Exit(1)
+	}
+	prometheus.MustRegister(nodeCollector)
 
 	http.Handle(*metricsPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
