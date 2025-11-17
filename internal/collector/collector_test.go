@@ -4,14 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/prometheus/client_golang/prometheus/testutil"
-	"github.com/prometheus/common/promlog"
+	"github.com/prometheus/common/promslog"
 	"github.com/vinted/sonic-exporter/pkg/redis"
 )
 
@@ -70,14 +70,14 @@ func pushDataFromFile(ctx context.Context, fileName string) error {
 func TestMain(m *testing.M) {
 	s, err := miniredis.Run()
 	if err != nil {
-		log.Printf("failed to start redis: %v", err)
+		slog.Error("failed to start redis", "error", err)
 		os.Exit(1)
 	}
 
 	os.Setenv("REDIS_ADDRESS", s.Addr())
 	err = populateRedisData()
 	if err != nil {
-		log.Printf("failed to populate redis data: %v", err)
+		slog.Error("failed to populate redis data", "error", err)
 		os.Exit(1)
 	}
 
@@ -89,8 +89,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestInterfaceCollector(t *testing.T) {
-	promlogConfig := &promlog.Config{}
-	logger := promlog.New(promlogConfig)
+	promslogConfig := &promslog.Config{}
+	logger := promslog.New(promslogConfig)
 
 	interfaceCollector := NewInterfaceCollector(logger)
 
@@ -123,8 +123,8 @@ func TestInterfaceCollector(t *testing.T) {
 }
 
 func TestHwCollector(t *testing.T) {
-	promlogConfig := &promlog.Config{}
-	logger := promlog.New(promlogConfig)
+	promslogConfig := &promslog.Config{}
+	logger := promslog.New(promslogConfig)
 
 	hwCollector := NewHwCollector(logger)
 
@@ -157,8 +157,8 @@ func TestHwCollector(t *testing.T) {
 }
 
 func TestCrmCollector(t *testing.T) {
-	promlogConfig := &promlog.Config{}
-	logger := promlog.New(promlogConfig)
+	promslogConfig := &promslog.Config{}
+	logger := promslog.New(promslogConfig)
 
 	crmCollector := NewCrmCollector(logger)
 
@@ -191,8 +191,8 @@ func TestCrmCollector(t *testing.T) {
 }
 
 func TestQueueCollector(t *testing.T) {
-	promlogConfig := &promlog.Config{}
-	logger := promlog.New(promlogConfig)
+	promslogConfig := &promslog.Config{}
+	logger := promslog.New(promslogConfig)
 
 	queueCollector := NewQueueCollector(logger)
 

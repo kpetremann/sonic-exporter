@@ -3,12 +3,11 @@ package collector
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vinted/sonic-exporter/pkg/redis"
 )
@@ -24,11 +23,11 @@ type queueCollector struct {
 	scrapeCollectorSuccess    *prometheus.Desc
 	cachedMetrics             []prometheus.Metric
 	lastScrapeTime            time.Time
-	logger                    log.Logger
+	logger                    *slog.Logger
 	mu                        sync.Mutex
 }
 
-func NewQueueCollector(logger log.Logger) *queueCollector {
+func NewQueueCollector(logger *slog.Logger) *queueCollector {
 	const (
 		namespace = "sonic"
 		subsystem = "queue"
@@ -67,7 +66,7 @@ func (collector *queueCollector) Collect(ch chan<- prometheus.Metric) {
 
 	if time.Since(collector.lastScrapeTime) < cacheDuration {
 		// Return cached metrics without making redis calls
-		level.Info(collector.logger).Log("msg", "Returning queue metrics from cache")
+		collector.logger.Info("Returning queue metrics from cache")
 
 		for _, metric := range collector.cachedMetrics {
 			ch <- metric
@@ -78,7 +77,7 @@ func (collector *queueCollector) Collect(ch chan<- prometheus.Metric) {
 	err := collector.scrapeMetrics(ctx)
 	if err != nil {
 		scrapeSuccess = 0
-		level.Error(collector.logger).Log("err", err)
+		collector.logger.Error("Error scraping metrics", "error", err)
 	}
 	collector.cachedMetrics = append(collector.cachedMetrics, prometheus.MustNewConstMetric(
 		collector.scrapeCollectorSuccess, prometheus.GaugeValue, scrapeSuccess,
@@ -90,7 +89,7 @@ func (collector *queueCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 func (collector *queueCollector) scrapeMetrics(ctx context.Context) error {
-	level.Info(collector.logger).Log("msg", "Starting queue metric scrape")
+	collector.logger.Info("Starting queue metric scrape")
 	scrapeTime := time.Now()
 
 	redisClient, err := redis.NewClient()
@@ -125,7 +124,7 @@ func (collector *queueCollector) scrapeMetrics(ctx context.Context) error {
 		}
 	}
 
-	level.Info(collector.logger).Log("msg", "Ending queue metric scrape")
+	collector.logger.Info("Ending queue metric scrape")
 
 	collector.lastScrapeTime = time.Now()
 	collector.cachedMetrics = append(collector.cachedMetrics, prometheus.MustNewConstMetric(
