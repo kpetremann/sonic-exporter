@@ -17,16 +17,29 @@ import (
 )
 
 func main() {
+	// setup frr and node exporters (default flag values + hardcoded flags)
+	kingpin.CommandLine.Parse([]string{
+		"--frr.vtysh",
+		"--collector.bgp6",
+		"--collector.bgpl2vpn",
+		"--no-collector.route",
+		"--no-collector.bfd",
+		"--no-collector.ospf",
+	})
+
+	// New kingpin instance to prevent imported code from adding flags (frr and node exporters)
+	kp := kingpin.New("sonic-exporter", "Prometheus exporter for SONiC network switches")
+
 	var (
-		webConfig   = webflag.AddFlags(kingpin.CommandLine, ":9101")
-		metricsPath = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
+		webConfig   = webflag.AddFlags(kp, ":9101")
+		metricsPath = kp.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
 	)
 
 	promslogConfig := &promslog.Config{}
-	flag.AddFlags(kingpin.CommandLine, promslogConfig)
-	kingpin.HelpFlag.Short('h')
-	kingpin.CommandLine.UsageWriter(os.Stdout)
-	kingpin.Parse()
+	flag.AddFlags(kp, promslogConfig)
+	kp.HelpFlag.Short('h')
+	kp.UsageWriter(os.Stdout)
+	kp.Parse(os.Args[1:])
 
 	logger := promslog.New(promslogConfig)
 
@@ -62,42 +75,6 @@ func main() {
 		logger.Error("Failed to create FRR exporter", "error", err)
 		os.Exit(1)
 	}
-
-	bgpL2VPNCollector, err := frrcollector.NewBGPL2VPNCollector(logger)
-	if err != nil {
-		logger.Error("Failed to create BGP L2VPN collector", "error", err)
-		os.Exit(1)
-	}
-	frrExporter.Collectors["bgp_l2vpn"] = bgpL2VPNCollector
-
-	bgpCollector, err := frrcollector.NewBGPCollector(logger)
-	if err != nil {
-		logger.Error("Failed to create BGP collector", "error", err)
-		os.Exit(1)
-	}
-	frrExporter.Collectors["bgp"] = bgpCollector
-
-	bgp6Collector, err := frrcollector.NewBGP6Collector(logger)
-	if err != nil {
-		logger.Error("Failed to create BGP6 collector", "error", err)
-		os.Exit(1)
-	}
-	frrExporter.Collectors["bgp6"] = bgp6Collector
-
-	statusCollector, err := frrcollector.NewStatusCollector(logger)
-	if err != nil {
-		logger.Error("Failed to create FRR status collector", "error", err)
-		os.Exit(1)
-	}
-	frrExporter.Collectors["status"] = statusCollector
-
-	routeCollector, err := frrcollector.NewRouteCollector(logger)
-	if err != nil {
-		logger.Error("Failed to create route collector", "error", err)
-		os.Exit(1)
-	}
-	frrExporter.Collectors["route"] = routeCollector
-
 	prometheus.MustRegister(frrExporter)
 
 	http.Handle(*metricsPath, promhttp.Handler())

@@ -9,7 +9,9 @@ require (
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.67.1
 	github.com/prometheus/exporter-toolkit v0.14.1
+	github.com/prometheus/node_exporter v1.10.2
 	github.com/redis/go-redis/v9 v9.6.1
+	github.com/tynany/frr_exporter v1.9.0
 )
 
 require (
@@ -32,7 +34,6 @@ require (
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/jsimonetti/rtnetlink/v2 v2.0.5 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lufia/iostat v1.2.1 // indirect
 	github.com/mattn/go-xmlrpc v0.0.3 // indirect
@@ -48,11 +49,9 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/prometheus-community/go-runit v0.1.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/node_exporter v1.10.2 // indirect
 	github.com/prometheus/procfs v0.19.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/safchain/ethtool v0.6.2 // indirect
-	github.com/tynany/frr_exporter v1.9.0 // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
 	github.com/yuin/gopher-lua v1.1.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
@@ -66,7 +65,6 @@ require (
 	golang.org/x/sys v0.37.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	howett.net/plist v1.0.1 // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
