@@ -12,6 +12,7 @@ import (
 	"github.com/prometheus/exporter-toolkit/web"
 	webflag "github.com/prometheus/exporter-toolkit/web/kingpinflag"
 	nodecollector "github.com/prometheus/node_exporter/collector"
+	frrcollector "github.com/tynany/frr_exporter/collector"
 	"github.com/vinted/sonic-exporter/internal/collector"
 )
 
@@ -54,6 +55,50 @@ func main() {
 		os.Exit(1)
 	}
 	prometheus.MustRegister(nodeCollector)
+
+	// FRR exporter
+	frrExporter, err := frrcollector.NewExporter(logger)
+	if err != nil {
+		logger.Error("Failed to create FRR exporter", "error", err)
+		os.Exit(1)
+	}
+
+	bgpL2VPNCollector, err := frrcollector.NewBGPL2VPNCollector(logger)
+	if err != nil {
+		logger.Error("Failed to create BGP L2VPN collector", "error", err)
+		os.Exit(1)
+	}
+	frrExporter.Collectors["bgp_l2vpn"] = bgpL2VPNCollector
+
+	bgpCollector, err := frrcollector.NewBGPCollector(logger)
+	if err != nil {
+		logger.Error("Failed to create BGP collector", "error", err)
+		os.Exit(1)
+	}
+	frrExporter.Collectors["bgp"] = bgpCollector
+
+	bgp6Collector, err := frrcollector.NewBGP6Collector(logger)
+	if err != nil {
+		logger.Error("Failed to create BGP6 collector", "error", err)
+		os.Exit(1)
+	}
+	frrExporter.Collectors["bgp6"] = bgp6Collector
+
+	statusCollector, err := frrcollector.NewStatusCollector(logger)
+	if err != nil {
+		logger.Error("Failed to create FRR status collector", "error", err)
+		os.Exit(1)
+	}
+	frrExporter.Collectors["status"] = statusCollector
+
+	routeCollector, err := frrcollector.NewRouteCollector(logger)
+	if err != nil {
+		logger.Error("Failed to create route collector", "error", err)
+		os.Exit(1)
+	}
+	frrExporter.Collectors["route"] = routeCollector
+
+	prometheus.MustRegister(frrExporter)
 
 	http.Handle(*metricsPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
