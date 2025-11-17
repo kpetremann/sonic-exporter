@@ -2,6 +2,8 @@ module github.com/vinted/sonic-exporter
 
 go 1.24.0
 
+toolchain go1.25
+
 require (
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/alicebob/miniredis/v2 v2.30.5
